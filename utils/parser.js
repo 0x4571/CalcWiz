@@ -1,13 +1,36 @@
-module.exports = function(expression) {
+const { functions } = require('../settings.json')
+
+module.exports = function (expression) {
     console.log(`Parsing ${expression}...`)
 
     const operators = /^[+\-*/^]$/
 
-    expression = expression.match(/(\d+\.?\d*|[a-zA-Z]+\b|[+\-*/^()=])/g).map(k => {
-        return isNaN(k) ? k : Number(k);
-    });
+    let skipNextIteration = false;
+
     
-    let openParenthesesCount = 0;
+    expression = expression.match(/(\d+\.?\d*|[a-zA-Z]+\b|[+\-*/^()=])/g).flatMap((k, i, arr) => {
+        if (skipNextIteration) {
+            skipNextIteration = false;
+            return [];
+        }
+    
+        if ((k === '-' || k === '+') && (i === 0 || operators.test(arr[i - 1]) || arr[i - 1] === '(')) {
+            const nextNumber = arr[i + 1];
+            skipNextIteration = true;
+    
+            return ['(', 0, k, nextNumber, ')'];
+        }
+    
+        if (!isNaN(k)) {
+            return Number(k);
+        } else if (operators.test(k)) {
+            return k
+        }
+    });
+
+    expression = expression.filter(exp => exp !== undefined);
+    
+    let openParenthesesCount = 0
     let error = undefined
 
     for (let i = 0; i < expression.length - 1; i++) {
@@ -23,6 +46,11 @@ module.exports = function(expression) {
         }
 
         if (expression[i] === '(' && operators.test(expression[i + 1])) {
+            error = "Error: Invalid sequence."
+            break
+        }
+
+        if (functions.includes(expression[i]) && functions.includes(expression[i + 1])) {
             error = "Error: Invalid sequence."
             break
         }
