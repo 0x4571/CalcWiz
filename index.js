@@ -66,7 +66,7 @@ function solveReply(msg) {
         const solvedContent = solveExpression(parsedContent)
 
         fullMessage = fullMessage + solvedContent + "**\n"
-    }
+    } 
 
    msg.reply(`${fullMessage}`)
 }
