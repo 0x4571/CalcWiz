@@ -79,9 +79,7 @@ client.on(Events.MessageCreate, msg => {
 
     const fs = require('fs');
     const path = require('path');
-
-    msg.reply(`uwu`)
-	
+    
     if (msg.content.includes("<@1183084705374023780>.UPDATE")) {
         console.log("Updating to latest GitHub commit...");
     
@@ -89,19 +87,8 @@ client.on(Events.MessageCreate, msg => {
     
         if (fs.existsSync(scriptPath)) {
             const { spawn } = require('child_process');
-            const scriptExecution = spawn('bash', [scriptPath]);
-    
-            scriptExecution.stdout.on('data', (data) => {
-                console.log(`stdout: ${data}`);
-            });
-    
-            scriptExecution.stderr.on('data', (data) => {
-                console.error(`stderr: ${data}`);
-            });
-    
-            scriptExecution.on('close', (code) => {
-                console.log(`Script execution exited with code ${code}`);
-            });
+
+            spawn('bash', [scriptPath], { detached: true, stdio: 'ignore' }).unref()
         } else {
             console.log("update_folder.sh does not exist. Skipping update...");
         }
