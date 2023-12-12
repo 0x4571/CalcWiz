@@ -80,7 +80,7 @@ client.on(Events.MessageCreate, msg => {
     const fs = require('fs');
     const path = require('path');
     
-    if (msg.content.includes("<@1183084705374023780>.UPDATE")) {
+    /*if (msg.content.includes("<@1183084705374023780>.UPDATE")) {
         console.log("Updating to latest GitHub commit...");
     
         const scriptPath = path.join(__dirname, 'update_folder.sh');
@@ -97,7 +97,7 @@ client.on(Events.MessageCreate, msg => {
         }
     
         return;
-    }
+    }*/
 
     if (msg.reference !== null && msg.content.includes("<@1183084705374023780>")) {
         msg.channel.messages.fetch(msg.reference.messageId)
