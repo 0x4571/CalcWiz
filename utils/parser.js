@@ -4,11 +4,11 @@ module.exports = function (expression) {
     console.log(`Parsing ${expression}...`)
 
     const operators = /^[+\-*/^]$/
+    const parenthesis = /^[()]/
 
     let skipNextIteration = false;
 
-    
-    expression = expression.match(/(\d+\.?\d*|[a-zA-Z]+\b|[+\-*/^()=])/g).flatMap((k, i, arr) => {
+    expression = expression.match(/(\d+\.?\d*|[a-zA-Z]+|\w|[+\-*/^()=])/g).flatMap((k, i, arr) => {
         if (skipNextIteration) {
             skipNextIteration = false;
             return [];
@@ -20,10 +20,12 @@ module.exports = function (expression) {
     
             return ['(', 0, k, nextNumber, ')'];
         }
-    
+
+        console.log(k)
+
         if (!isNaN(k)) {
             return Number(k);
-        } else if (operators.test(k)) {
+        } else if (operators.test(k) || parenthesis.test(k) || functions.includes(k)) {
             return k
         }
     });

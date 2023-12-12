@@ -1,6 +1,6 @@
 const operatorOrders = {
     PEMDAS: {
-        1: ['sin', 'cos', 'tan'],
+        1: ['sin', 'cos', 'tan', 'e'],
         2: ["\(", "\)"],
         3: ["\^"],
         4: ["\*", "\/"],
@@ -8,9 +8,7 @@ const operatorOrders = {
     }
 };
 
-const { Console } = require('console');
 const { orderMode, functions } = require('../settings.json');
-const exp = require('constants');
 
 const precedence = (operator) => {
     for (let order in operatorOrders[orderMode]) {
@@ -23,17 +21,23 @@ const precedence = (operator) => {
 
 const applyOperator = (operator, a, b) => {
     const operators = {
+        'sin': (a, b) => Math.sin(b),
         '\+': (a, b) => a + b,
         '\-': (a, b) => a - b,
         '\*': (a, b) => a * b,
         '\/': (a, b) => a / b,
-        '\^': (a, b) => Math.pow(a, b)
+        '\^': (a, b) => Math.pow(a, b),
+        'e': (a, b) => a * Math.pow(10, b)
     };
 
     a = parseFloat(a);
     b = parseFloat(b);
 
     if (operators.hasOwnProperty(operator)) {
+        if (operator == "/" && b == 0) {
+            return 'undefined'
+        }
+
         return operators[operator](a, b);
     } else {
         return a || b;
@@ -72,6 +76,7 @@ const solveExpression = (expression) => {
 
     let resultStack = [];
 
+
     for (let token of output) {
         if (!isNaN(token)) {
             resultStack.push(token);
@@ -102,37 +107,22 @@ module.exports = function (expression) {
 
         for (let order in operatorOrders[orderMode]) {
             const operators = operatorOrders[orderMode][order];
-    
+
             while (operators.some(op => subExpression.includes(op))) {
                 const index = subExpression.findIndex(token => operators.includes(token));
-    
-                if (!isNaN(subExpression[0])) {
-                    const precedingOperator = subExpression[index - 2];
-    
-                    sign = (precedingOperator === '-') ? -1 : 1;
-                }
-    
-                let result = solveExpression(subExpression);
-    
-                if (subExpression[index - 2] === '-' && subExpression[index] === '+') {
-                    result = sign * result;
-                }
-    
+
+                let result = solveExpression(subExpression.slice(index - 1, index + 2));
+
                 subExpression.splice(index - 1, 3, result);
-    
-                console.log(`${subExpression} = ${result}`);
-    
-                sign = 1;
+
+                console.log(`${subExpression.join(' ')} = ${result}`);
             }
         }
 
-        const result = solveExpression(subExpression);
-        modifiedExpression.splice(openIndex, closeIndex - openIndex + 1, result);
-
-        console.log(`${modifiedExpression.join(' ')} = ${result}`);
+        modifiedExpression.splice(openIndex, closeIndex - openIndex + 1, ...subExpression);
     }
 
-    expression = modifiedExpression
+    expression = modifiedExpression;
 
     console.log(`Main exp: ${expression.join(' ')}`);
 
@@ -149,15 +139,18 @@ module.exports = function (expression) {
                 sign = (precedingOperator === '-') ? -1 : 1;
             }
 
-            let result = solveExpression(subExpression);
-
-            if (expression[index - 2] === '-' && expression[index] === '+') {
-                result = sign * result;
+            if (order === 1 && expression[0] === 'sin') {
+                let result = solveExpression(expression.unshift(0));
+                expression.splice(index - 1, 3, result);
+            } else {
+                let result = solveExpression(subExpression);
+                if (expression[index - 2] === '-' && expression[index] === '+') {
+                    result = sign * result;
+                }
+                expression.splice(index - 1, 3, result);
             }
 
-            expression.splice(index - 1, 3, result);
-
-            console.log(`${expression} = ${result}`);
+            //console.log(`${expression.join(' ')} = ${result}`);
 
             sign = 1;
         }
