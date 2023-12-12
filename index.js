@@ -86,9 +86,11 @@ client.on(Events.MessageCreate, msg => {
         const scriptPath = path.join(__dirname, 'update_folder.sh');
     
         if (fs.existsSync(scriptPath)) {
-            const { spawn } = require('child_process');
+            const pm2Process = spawn('pm2', ['start', scriptPath, '--name', 'update_folder']);
 
-            spawn('bash', [scriptPath], { detached: true, stdio: 'ignore' }).unref()
+            pm2Process.on('close', (code) => {
+                console.log(`pm2 process exited with code ${code}`);
+            });
         } else {
             console.log("update_folder.sh does not exist. Skipping update...");
         }
