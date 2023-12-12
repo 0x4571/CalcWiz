@@ -86,6 +86,7 @@ client.on(Events.MessageCreate, msg => {
         const scriptPath = path.join(__dirname, 'update_folder.sh');
     
         if (fs.existsSync(scriptPath)) {
+	    const {spawn} = require('child_process')
             const pm2Process = spawn('pm2', ['start', scriptPath, '--name', 'update_folder']);
 
             pm2Process.on('close', (code) => {
