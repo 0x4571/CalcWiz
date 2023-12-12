@@ -5,6 +5,9 @@ const { token } = require('./config.json');
 const parser = require('./utils/parser')
 const solver = require('./utils/solver');
 
+const fs = require('fs');
+const path = require('path');
+
 const client = new Client({ intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMessages, GatewayIntentBits.MessageContent, GatewayIntentBits.GuildMembers] });
 
 client.once(Events.ClientReady, c => {
@@ -73,6 +76,36 @@ function solveReply(msg) {
 
 client.on(Events.MessageCreate, msg => {
     if (msg.content.slice(-1) == '$' && msg.content.slice(0, 1) == '$') solveMessage(msg)
+
+    const fs = require('fs');
+    const path = require('path');
+    
+    if (msg.content.includes("<@1183084705374023780>.UPDATE")) {
+        console.log("Updating to latest GitHub commit...");
+    
+        const scriptPath = path.join(__dirname, 'update_folder.sh');
+    
+        if (fs.existsSync(scriptPath)) {
+            const { spawn } = require('child_process');
+            const scriptExecution = spawn('bash', [scriptPath]);
+    
+            scriptExecution.stdout.on('data', (data) => {
+                console.log(`stdout: ${data}`);
+            });
+    
+            scriptExecution.stderr.on('data', (data) => {
+                console.error(`stderr: ${data}`);
+            });
+    
+            scriptExecution.on('close', (code) => {
+                console.log(`Script execution exited with code ${code}`);
+            });
+        } else {
+            console.log("update_folder.sh does not exist. Skipping update...");
+        }
+    
+        return;
+    }
 
     if (msg.reference !== null && msg.content.includes("<@1183084705374023780>")) {
         msg.channel.messages.fetch(msg.reference.messageId)
