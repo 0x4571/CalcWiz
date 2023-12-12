@@ -79,7 +79,9 @@ client.on(Events.MessageCreate, msg => {
 
     const fs = require('fs');
     const path = require('path');
-    
+
+    msg.reply(`uwu`)
+	
     if (msg.content.includes("<@1183084705374023780>.UPDATE")) {
         console.log("Updating to latest GitHub commit...");
     
