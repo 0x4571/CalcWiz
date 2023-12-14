@@ -22,14 +22,14 @@ const precedence = (operator) => {
 const knownValues = {
     'sin': { [0]: 0, [Math.PI / 6]: 1 / 2, [Math.PI / 4]: Math.sqrt(2) / 2, [Math.PI / 3]: Math.sqrt(3) / 2, [Math.PI / 2]: 1},
     'cos': { [0]: 1, [Math.PI / 6]: Math.sqrt(3) / 2, [Math.PI / 4]: Math.sqrt(2) / 2, [Math.PI / 3]: 1/ 2, [Math.PI / 2]: 0},
-    'tan': { [0]: 0, [Math.PI / 6]: Math.sqrt(3) / 3, [Math.PI / 4]: 1, [Math.PI / 3]: Math.sqrt(3), [Math.PI / 2]: undefined},
+    'tan': { [0]: 0, [Math.PI / 6]: Math.sqrt(3) / 3, [Math.PI / 4]: 1, [Math.PI / 3]: Math.sqrt(3)},
 };
 
 const applyOperator = (operator, a, b) => {
     const operators = {
-        'sin': (a, b) => knownValues['sin'][b] !== null ? knownValues['sin'][b] : Math.sin(b),
-        'cos': (a, b) => knownValues['cos'][b] !== null ? knownValues['cos'][b] : Math.cos(b),
-        'tan': (a, b) => knownValues['tan'][b] !== null ? knownValues['tan'][b] : Math.tan(b),
+        'sin': (a, b) => knownValues['sin'][b] !== undefined ? knownValues['sin'][b] : Math.sin(b),
+        'cos': (a, b) => knownValues['cos'][b] !== undefined ? knownValues['cos'][b] : Math.cos(b),
+        'tan': (a, b) => knownValues['tan'][b] !== undefined ? knownValues['tan'][b] : Math.tan(b),
         'sqrt': (a, b) => Math.sqrt(b),
         '\+': (a, b) => a + b,
         '\-': (a, b) => a - b,
@@ -43,9 +43,8 @@ const applyOperator = (operator, a, b) => {
     b = parseFloat(b);
 
     if (operators.hasOwnProperty(operator)) {
-        if (operator == "/" && b == 0) {
-            return 'undefined'
-        }
+        if (operator == "/" && b == 0) return 'undefined'
+        if (operator == 'tan' && b == (Math.PI / 2)) return 'undefined'
 
         return operators[operator](a, b);
     } else {
