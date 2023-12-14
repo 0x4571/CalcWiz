@@ -1,6 +1,6 @@
 const operatorOrders = {
     PEMDAS: {
-        1: ['sin', 'cos', 'tan', 'e'],
+        1: ['sin', 'cos', 'tan', 'e', 'sqrt'],
         2: ["\(", "\)"],
         3: ["\^"],
         4: ["\*", "\/"],
@@ -22,12 +22,15 @@ const precedence = (operator) => {
 const applyOperator = (operator, a, b) => {
     const operators = {
         'sin': (a, b) => Math.sin(b),
+        'cos': (a, b) => Math.cos(b),
+        'tan': (a, b) => Math.tan(b),
+        'sqrt': (a, b) => Math.sqrt(b),
         '\+': (a, b) => a + b,
         '\-': (a, b) => a - b,
         '\*': (a, b) => a * b,
         '\/': (a, b) => a / b,
         '\^': (a, b) => Math.pow(a, b),
-        'e': (a, b) => a * Math.pow(10, b)
+        'e': (a, b) => a * Math.pow(10, b),
     };
 
     a = parseFloat(a);
@@ -93,6 +96,19 @@ const solveExpression = (expression) => {
 module.exports = function (expression) {
     let sign = 1; 
 
+    for (let i in expression) {
+        if (expression[i] === "pi" || expression[i] === 'π') {
+            expression[i] = Math.PI
+        } else if (expression[i] === '√') {
+            expression[i] = 'sqrt'
+        }
+    }
+
+    if (operatorOrders[orderMode][1].includes(expression[0])) {
+        //expression.unshift('+')
+        expression.unshift(0)
+    }
+
     let modifiedExpression = [...expression];
 
     while (modifiedExpression.includes('(')) {
@@ -139,16 +155,11 @@ module.exports = function (expression) {
                 sign = (precedingOperator === '-') ? -1 : 1;
             }
 
-            if (order === 1 && expression[0] === 'sin') {
-                let result = solveExpression(expression.unshift(0));
-                expression.splice(index - 1, 3, result);
-            } else {
                 let result = solveExpression(subExpression);
                 if (expression[index - 2] === '-' && expression[index] === '+') {
                     result = sign * result;
                 }
                 expression.splice(index - 1, 3, result);
-            }
 
             //console.log(`${expression.join(' ')} = ${result}`);
 

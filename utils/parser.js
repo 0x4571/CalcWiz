@@ -8,7 +8,7 @@ module.exports = function (expression) {
 
     let skipNextIteration = false;
 
-    expression = expression.match(/(\d+\.?\d*|[a-zA-Z]+|\w|[+\-*/^()=])/g).flatMap((k, i, arr) => {
+    expression = expression.match(/(\d+\.?\d*|π|√|[a-zA-Z]+|\w|[+\-*/^()=])/g).flatMap((k, i, arr) => {
         if (skipNextIteration) {
             skipNextIteration = false;
             return [];
@@ -20,8 +20,6 @@ module.exports = function (expression) {
     
             return ['(', 0, k, nextNumber, ')'];
         }
-
-        console.log(k)
 
         if (!isNaN(k)) {
             return Number(k);
@@ -67,7 +65,7 @@ module.exports = function (expression) {
         error = "Error: Unmatched open parenthesis."
     }
 
-    console.log('Finished parsing.')
+    console.log(`Finished parsing: ${error || expression}`)
 
     return error || expression
 }

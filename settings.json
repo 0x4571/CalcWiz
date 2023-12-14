@@ -1,4 +1,4 @@
 {
     "orderMode": "PEMDAS",
-    "functions": ["sin", "cos", "tan", "e"]
+    "functions": ["sin", "cos", "tan", "e", "pi", "π", "sqrt", "√"]
 }

@@ -22,9 +22,9 @@ function solveExpression(expression) {
     return solver(expression)
 }
 
-function solveMessage(msg) {
-    let expressions = msg.content.split('\n')
-    let fullMessage = ""    
+function solveMessage(msg, content) {
+    let expressions = content.split('\n')
+    let fullMessage = ""   
 
     for (let i in expressions) {
         if (expressions[i] === "" || expressions[i] === "\$" || expressions[i] === " ") continue
@@ -43,6 +43,10 @@ function solveMessage(msg) {
         const solvedContent = solveExpression(parsedContent)
 
         fullMessage = fullMessage + solvedContent + "**\n"
+    }
+
+    if (fullMessage.trim() === '') {
+        return
     }
 
    msg.reply(`${fullMessage}`)
@@ -71,14 +75,15 @@ function solveReply(msg) {
         fullMessage = fullMessage + solvedContent + "**\n"
     } 
 
+    if (fullMessage.trim() === '') {
+        return
+    }
+
    msg.reply(`${fullMessage}`)
 }
 
 client.on(Events.MessageCreate, msg => {
-    if (msg.content.slice(-1) == '$' && msg.content.slice(0, 1) == '$') solveMessage(msg)
-
-    const fs = require('fs');
-    const path = require('path');
+    if (msg.content.match(/\$(.*?)\$/)) solveMessage(msg, msg.content.match(/\$(.*?)\$/)[1])
     
     /*if (msg.content.includes("<@1183084705374023780>.UPDATE")) {
         console.log("Updating to latest GitHub commit...");
@@ -86,7 +91,7 @@ client.on(Events.MessageCreate, msg => {
         const scriptPath = path.join(__dirname, 'update_folder.sh');
     
         if (fs.existsSync(scriptPath)) {
-	    const {spawn} = require('child_process')
+            const {spawn} = require('child_process')
             const pm2Process = spawn('pm2', ['start', scriptPath, '--name', 'update_folder']);
 
             pm2Process.on('close', (code) => {
