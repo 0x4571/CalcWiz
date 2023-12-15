@@ -1,10 +1,11 @@
 const operatorOrders = {
     PEMDAS: {
-        1: ['sin', 'cos', 'tan', 'e', 'sqrt'],
-        2: ["\(", "\)"],
-        3: ["\^"],
-        4: ["\*", "\/"],
-        5: ["\+", "\-"],
+        1: ['sin', 'cos', 'tan', 'e', 'sqrt', 'log', 'ln', '!', 'cot', 'sec', 'csc', 'asin', 'acos', 'atan', 'acot', 'asec',
+    'acsc', 'sinh', 'cosh', 'tanh', 'coth', 'sech', 'csch'],
+        //2: ["\(", "\)"],
+        2: ["\^"],
+        3: ["\*", "\/"],
+        4: ["\+", "\-"],
     }
 };
 
@@ -30,13 +31,37 @@ const applyOperator = (operator, a, b) => {
         'sin': (a, b) => knownValues['sin'][b] !== undefined ? knownValues['sin'][b] : Math.sin(b),
         'cos': (a, b) => knownValues['cos'][b] !== undefined ? knownValues['cos'][b] : Math.cos(b),
         'tan': (a, b) => knownValues['tan'][b] !== undefined ? knownValues['tan'][b] : Math.tan(b),
-        'sqrt': (a, b) => Math.sqrt(b),
+        'cot': (a, b) => knownValues['tan'][b] !== undefined ? 1 / knownValues['tan'][b] : 1 / Math.tan(b),
+        'sec': (a, b) => knownValues['cos'][b] !== undefined ? 1 / knownValues['cos'][b] : 1 / Math.cos(b),
+        'csc': (a, b) => knownValues['sin'][b] !== undefined ? 1 / knownValues['sin'][b] : 1 / Math.sin(b),
+        'asin': (a, b) => Math.asin(b),
+        'acos': (a, b) => Math.acos(b),
+        'atan': (a, b) => Math.atan(b),
+        'acot': (a, b) => Math.atan(1 / b),
+        'asec': (a, b) => Math.acos(1 / b),
+        'acsc': (a, b) => Math.asin(1 / b),
+        'sinh': (a, b) => Math.sinh(b),
+        'cosh': (a, b) => Math.cosh(b),
+        'tanh': (a, b) => Math.tanh(b),
+        'coth': (a, b) => Math.coth(1 / b),
+        'sech': (a, b) => Math.sech(1 / b),
+        'csch': (a, b) => Math.csch(1 / b),
+        'log': (a, b) => Math.log(b),
+        'ln': (a, b) => Math.log(b),
         '\+': (a, b) => a + b,
         '\-': (a, b) => a - b,
         '\*': (a, b) => a * b,
         '\/': (a, b) => a / b,
         '\^': (a, b) => Math.pow(a, b),
         'e': (a, b) => a * Math.pow(10, b),
+        '!': (a, b) => function() {
+            let fact = 1;
+            for (let i = 1; i <= b; i++) {
+                fact *= i;
+            }
+        
+            return fact;
+        }()
     };
 
     a = parseFloat(a);
@@ -45,6 +70,8 @@ const applyOperator = (operator, a, b) => {
     if (operators.hasOwnProperty(operator)) {
         if (operator == "/" && b == 0) return 'undefined'
         if (operator == 'tan' && b == (Math.PI / 2)) return 'undefined'
+
+        console.log(`${operator} ${b} ${a}`)
 
         return operators[operator](a, b);
     } else {

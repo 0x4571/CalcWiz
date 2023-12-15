@@ -8,7 +8,7 @@ module.exports = function (expression) {
 
     let skipNextIteration = false;
 
-    expression = expression.match(/(\d+\.?\d*|π|√|[a-zA-Z]+|\w|[+\-*/^()=])/g).flatMap((k, i, arr) => {
+    expression = expression.match(/(\d+\.?\d*|π|√|!|[a-zA-Z]+|\w|[+\-*/^()=])/g).flatMap((k, i, arr) => {
         if (skipNextIteration) {
             skipNextIteration = false;
             return [];

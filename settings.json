@@ -1,4 +1,5 @@
 {
     "orderMode": "PEMDAS",
-    "functions": ["sin", "cos", "tan", "e", "pi", "π", "sqrt", "√"]
+    "functions": ["sin", "cos", "tan", "e", "pi", "π", "sqrt", "√", "log", "ln", "!", "cot", "sec", "csc", "asin", "acos", "atan", "acot", "asec",
+    "acsc", "sinh", "cosh", "tanh", "coth", "sech", "csch"]
 }
