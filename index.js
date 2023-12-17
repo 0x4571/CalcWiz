@@ -3,10 +3,8 @@ const { Client, Events, GatewayIntentBits, Collection } = require('discord.js');
 const { token } = require('./config.json');
 
 const parser = require('./utils/parser')
+const commands = require('./utils/commands')
 const solver = require('./utils/solver');
-
-const fs = require('fs');
-const path = require('path');
 
 const client = new Client({ intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMessages, GatewayIntentBits.MessageContent, GatewayIntentBits.GuildMembers] });
 
@@ -14,12 +12,12 @@ client.once(Events.ClientReady, c => {
 	console.log(`Ready! Logged in as ${c.user.tag}`);
 });
 
-function parseExpression(expression) {
-    return parser(expression)
+function parseExpression(uuid, expression) {
+    return parser(uuid, expression)
 }
 
-function solveExpression(expression) {
-    return solver(expression)
+function solveExpression(uuid, expression) {
+    return solver(uuid, expression)
 }
 
 function solveMessage(msg, content) {
@@ -31,7 +29,7 @@ function solveMessage(msg, content) {
 
         expressions[i] = expressions[i].replace(/\$/g, '')
 
-        const parsedContent = parseExpression(expressions[i])
+        const parsedContent = parseExpression(msg.author.id, expressions[i])
 
         if (typeof parsedContent === 'string') {
             msg.reply(`${parsedContent}`)
@@ -40,7 +38,7 @@ function solveMessage(msg, content) {
 
         fullMessage = fullMessage + "**" + parsedContent.join(' ') + " = "
 
-        const solvedContent = solveExpression(parsedContent)
+        const solvedContent = solveExpression(msg.author.id, parsedContent)
 
         fullMessage = fullMessage + solvedContent + "**\n"
     }
@@ -61,7 +59,7 @@ function solveReply(msg) {
 
         expressions[i] = expressions[i].replace(/\$/g, '')
 
-        const parsedContent = parseExpression(expressions[i])
+        const parsedContent = parseExpression(msg.author.id, expressions[i])
 
         if (typeof parsedContent === 'string') {
             msg.reply(`${parsedContent}`)
@@ -70,7 +68,7 @@ function solveReply(msg) {
 
         fullMessage = fullMessage + "**" + parsedContent.join(' ') + " = "
 
-        const solvedContent = solveExpression(parsedContent)
+        const solvedContent = solveExpression(msg.author.id, parsedContent)
 
         fullMessage = fullMessage + solvedContent + "**\n"
     } 
@@ -82,33 +80,27 @@ function solveReply(msg) {
    msg.reply(`${fullMessage}`)
 }
 
-client.on(Events.MessageCreate, msg => {
+function execCommand(msg) {
+    msg.content = msg.content.replace('<@1183084705374023780> ', '')
+    let args = msg.content.split(' ') 
+    const command = args[0]
+    args.shift()
+
+    const response = commands(command, msg.author.id, args)
+
+    msg.reply(`${response}`)
+    console.log(response)    
+}
+
+client.on(Events.MessageCreate, msg => {    
+
     if (msg.content.match(/\$(.*?)\$/)) solveMessage(msg, msg.content.match(/\$(.*?)\$/)[1])
-    
-    /*if (msg.content.includes("<@1183084705374023780>.UPDATE")) {
-        console.log("Updating to latest GitHub commit...");
-    
-        const scriptPath = path.join(__dirname, 'update_folder.sh');
-    
-        if (fs.existsSync(scriptPath)) {
-            const {spawn} = require('child_process')
-            const pm2Process = spawn('pm2', ['start', scriptPath, '--name', 'update_folder']);
-
-            pm2Process.on('close', (code) => {
-                console.log(`pm2 process exited with code ${code}`);
-            });
-        } else {
-            console.log("update_folder.sh does not exist. Skipping update...");
-        }
-    
-        return;
-    }*/
-
-    if (msg.reference !== null && msg.content.includes("<@1183084705374023780>")) {
+    else if (msg.reference !== null && msg.content.includes("<@1183084705374023780>")) {
         msg.channel.messages.fetch(msg.reference.messageId)
         .then(message => solveReply(message))
         .catch(console.error);
     } 
+    else if ((msg.content.includes("<@1183084705374023780>") || msg.users && msg.users["1183084705374023780"]) && msg.content.split(' ').length > 1) execCommand(msg)  
 });
 
 client.login(token);

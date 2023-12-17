@@ -10,13 +10,9 @@ const operatorOrders = {
 };
 
 const parser = require('./parser.js')
-const { orderMode, functions } = require('../settings.json');
-const variables = {
-    "x": ["cos(90) + 2"],
-    "myFunction": ["2 + 3 * x + y"]
-  }
+const database = require('./database.js')
 
-const precedence = (operator) => {
+const precedence = (operator, orderMode) => {
     for (let order in operatorOrders[orderMode]) {
         if (operatorOrders[orderMode][order].includes(operator)) {
             return parseFloat(order);
@@ -83,7 +79,7 @@ const applyOperator = (operator, a, b) => {
 
 };
 
-const solveExpression = (expression) => {
+const solveExpression = (expression, settings) => {
     let stack = [];
     let output = [];
 
@@ -100,7 +96,7 @@ const solveExpression = (expression) => {
         } else {
             while (
                 stack.length > 0 &&
-                precedence(stack[stack.length - 1]) >= precedence(token)
+                precedence(stack[stack.length - 1], settings["orderMode"]) >= precedence(token, settings["orderMode"])
             ) {
                 output.push(stack.pop());
             }
@@ -128,14 +124,17 @@ const solveExpression = (expression) => {
     return resultStack[0];
 };
 
-module.exports = function (expression) {
+module.exports = function (uuid, expression) {
     let sign = 1; 
+    let variables = database.returnData(uuid, 'variables')
+    let settings = database.returnData(uuid, 'settings')
+    const orderMode = settings["orderMode"]
 
     for (let i = 0; i < expression.length; i++) {
         const token = expression[i];
 
         if (variables[token]) {
-            const parsedValue = parser(variables[token][0]);
+            const parsedValue = parser(uuid, variables[token][0]);
             expression.splice(i, 1, ...parsedValue);
 
             let vars = []
@@ -175,7 +174,7 @@ module.exports = function (expression) {
 
             parentheses.join('').split(';').forEach(function(exp) {
                 const variable = exp.split('=')[0]
-                exp = parser(exp.split('=')[1])
+                exp = parser(uuid, exp.split('=')[1])
 
                 let modifiedExp = [...exp]
 
@@ -229,7 +228,7 @@ module.exports = function (expression) {
                             sign = (precedingOperator === '-') ? -1 : 1;
                         }
             
-                            let result = solveExpression(subExpression);
+                            let result = solveExpression(subExpression, settings);
                             if (subExp[index - 2] === '-' && subExp[index] === '+') {
                                 result = sign * result;
                             }
@@ -307,7 +306,7 @@ module.exports = function (expression) {
                     sign = (precedingOperator === '-') ? -1 : 1;
                 }
     
-                    let result = solveExpression(subExpression);
+                    let result = solveExpression(subExpression, settings);
                     if (expression[index - 2] === '-' && expression[index] === '+') {
                         result = sign * result;
                     }
@@ -339,7 +338,7 @@ module.exports = function (expression) {
                 sign = (precedingOperator === '-') ? -1 : 1;
             }
 
-                let result = solveExpression(subExpression);
+                let result = solveExpression(subExpression, settings);
                 if (expression[index - 2] === '-' && expression[index] === '+') {
                     result = sign * result;
                 }

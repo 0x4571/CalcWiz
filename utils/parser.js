@@ -1,11 +1,11 @@
-const { functions } = require('../settings.json')
-const variables = {
-    "x": ["cos(90) + 2"],
-    "myFunction": ["2 + 3 * x"]
-  }
+const database = require('./database.js')
 
-module.exports = function (expression) {
+module.exports = function (uuid, expression) {
     console.log(`Parsing ${expression}...`)
+
+    const settings = database.returnData(uuid, 'settings')
+    const variables = database.returnData(uuid, 'variables')
+    const functions = settings["functions"]
 
     const operators = /^[+\-*/^=]$/
     const parenthesis = /^[()]/
@@ -36,8 +36,6 @@ module.exports = function (expression) {
 
     expression = expression.filter(exp => exp !== undefined);
     
-    console.log(expression)
-
     let openParenthesesCount = 0
     let error = undefined
 
