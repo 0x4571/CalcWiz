@@ -9,7 +9,12 @@ const operatorOrders = {
     }
 };
 
+const parser = require('./parser.js')
 const { orderMode, functions } = require('../settings.json');
+const variables = {
+    "x": ["cos(90) + 2"],
+    "myFunction": ["2 + 3 * x + y"]
+  }
 
 const precedence = (operator) => {
     for (let order in operatorOrders[orderMode]) {
@@ -71,8 +76,6 @@ const applyOperator = (operator, a, b) => {
         if (operator == "/" && b == 0) return 'undefined'
         if (operator == 'tan' && b == (Math.PI / 2)) return 'undefined'
 
-        console.log(`${operator} ${b} ${a}`)
-
         return operators[operator](a, b);
     } else {
         return a || b;
@@ -128,6 +131,131 @@ const solveExpression = (expression) => {
 module.exports = function (expression) {
     let sign = 1; 
 
+    for (let i = 0; i < expression.length; i++) {
+        const token = expression[i];
+
+        if (variables[token]) {
+            const parsedValue = parser(variables[token][0]);
+            expression.splice(i, 1, ...parsedValue);
+
+            let vars = []
+
+            for (let j = 0; j < parsedValue.length; j++) {
+                const innerToken = parsedValue[j];
+
+                if (!/^[a-zA-Z]$/.test(innerToken)) continue
+
+                vars.push(innerToken)
+            }
+
+            if (vars.length > 0 && expression[i + parsedValue.length] !== '(') return `Error: Variables not assigned properly in function ${token} (${variables[token]})`
+            
+            let endParenthesesIndex = 0
+            let openParenthesesCount = 0
+
+            for (let k = i + parsedValue.length; k <= expression.length; k++) {
+                if (expression[k] === "(") {
+                    openParenthesesCount++
+                } else if (expression[k] === ")") {
+                    openParenthesesCount--
+                }
+
+                if (openParenthesesCount === 0) {
+                    endParenthesesIndex = k
+                    break
+                }
+            }
+
+            const parentheses = [...expression].splice(i + parsedValue.length, endParenthesesIndex - (i + parsedValue.length))
+            parentheses.shift()
+
+            expression.splice(i + parsedValue.length)
+
+            vars = {}
+
+            parentheses.join('').split(';').forEach(function(exp) {
+                const variable = exp.split('=')[0]
+                exp = parser(exp.split('=')[1])
+
+                let modifiedExp = [...exp]
+
+                while (modifiedExp.includes('(')) {
+                    let openIndex = modifiedExp.lastIndexOf('(');
+                    let closeIndex = modifiedExp.indexOf(')', openIndex);
+            
+                    if (openIndex === -1 || closeIndex === -1) {
+                        throw new Error('Mismatched parentheses.');
+                    }
+            
+                    let subExpression = modifiedExp.slice(openIndex + 1, closeIndex);
+            
+                    for (let order in operatorOrders[orderMode]) {
+                        const operators = operatorOrders[orderMode][order];
+                
+                        while (operators.some(op => subExp.includes(op))) {
+                            const index = subExp.findIndex(token => operators.includes(token));
+                
+                            if (!isNaN(subExpression[0])) {
+                                const precedingOperator = subExp[index - 2];
+                
+                                sign = (precedingOperator === '-') ? -1 : 1;
+                            }
+                
+                                let result = solveExpression(subExpression);
+                                if (subExp[index - 2] === '-' && subExp[index] === '+') {
+                                    result = sign * result;
+                                }
+                                subExp.splice(index - 1, 3, result);
+                
+                            sign = 1;
+                        }
+                    }
+            
+                    modifiedExp.splice(openIndex, closeIndex - openIndex + 1, ...subExpression);
+                }
+            
+                subExp = modifiedExp;
+            
+                for (let order in operatorOrders[orderMode]) {
+                    const operators = operatorOrders[orderMode][order];
+            
+                    while (operators.some(op => subExp.includes(op))) {
+                        const index = subExp.findIndex(token => operators.includes(token));
+                        const subExpression = subExp.slice(index - 1, index + 2);
+            
+                        if (!isNaN(subExpression[0])) {
+                            const precedingOperator = subExp[index - 2];
+            
+                            sign = (precedingOperator === '-') ? -1 : 1;
+                        }
+            
+                            let result = solveExpression(subExpression);
+                            if (subExp[index - 2] === '-' && subExp[index] === '+') {
+                                result = sign * result;
+                            }
+                            subExp.splice(index - 1, 3, result);
+            
+                        sign = 1;
+                    }
+                }
+
+                vars[variable] = subExp
+
+                if (parsedValue.includes(variable) && expression.includes(variable)) {
+                    for (let k = i - parsedValue.length; k <= i + parsedValue.length; k++) {
+                        if (expression[k] === variable) {
+                            expression[k] = subExp[0];  
+                        }
+                    }
+                }
+            });
+
+            expression.splice(i + parsedValue.length, endParenthesesIndex - (i + parsedValue.length) + 1)
+        }
+    }
+
+    //expression = expression.filter(token => token !== ';');
+  
     for (let i in expression) {
         if (expression[i] === "pi" || expression[i] === 'π') {
             expression[i] = Math.PI
@@ -153,7 +281,7 @@ module.exports = function (expression) {
 
         let subExpression = modifiedExpression.slice(openIndex + 1, closeIndex);
 
-        for (let order in operatorOrders[orderMode]) {
+        /*for (let order in operatorOrders[orderMode]) {
             const operators = operatorOrders[orderMode][order];
 
             while (operators.some(op => subExpression.includes(op))) {
@@ -164,6 +292,30 @@ module.exports = function (expression) {
                 subExpression.splice(index - 1, 3, result);
 
                 console.log(`${subExpression.join(' ')} = ${result}`);
+            }
+        }*/
+
+        for (let order in operatorOrders[orderMode]) {
+            const operators = operatorOrders[orderMode][order];
+    
+            while (operators.some(op => expression.includes(op))) {
+                const index = expression.findIndex(token => operators.includes(token));
+    
+                if (!isNaN(subExpression[0])) {
+                    const precedingOperator = expression[index - 2];
+    
+                    sign = (precedingOperator === '-') ? -1 : 1;
+                }
+    
+                    let result = solveExpression(subExpression);
+                    if (expression[index - 2] === '-' && expression[index] === '+') {
+                        result = sign * result;
+                    }
+                    expression.splice(index - 1, 3, result);
+    
+                //console.log(`${expression.join(' ')} = ${result}`);
+    
+                sign = 1;
             }
         }
 

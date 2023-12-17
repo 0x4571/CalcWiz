@@ -1,14 +1,18 @@
 const { functions } = require('../settings.json')
+const variables = {
+    "x": ["cos(90) + 2"],
+    "myFunction": ["2 + 3 * x"]
+  }
 
 module.exports = function (expression) {
     console.log(`Parsing ${expression}...`)
 
-    const operators = /^[+\-*/^]$/
+    const operators = /^[+\-*/^=]$/
     const parenthesis = /^[()]/
 
     let skipNextIteration = false;
 
-    expression = expression.match(/(\d+\.?\d*|π|√|!|[a-zA-Z]+|\w|[+\-*/^()=])/g).flatMap((k, i, arr) => {
+    expression = expression.match(/(\d+\.?\d*|;|π|√|!|[a-zA-Z]+|\w|[+\-*/^()=])/g).flatMap((k, i, arr) => {
         if (skipNextIteration) {
             skipNextIteration = false;
             return [];
@@ -20,16 +24,20 @@ module.exports = function (expression) {
     
             return ['(', 0, k, nextNumber, ')'];
         }
-
+    
         if (!isNaN(k)) {
             return Number(k);
-        } else if (operators.test(k) || parenthesis.test(k) || functions.includes(k)) {
-            return k
+        } else if (/[a-zA-Z]/.test(k) || operators.test(k) || parenthesis.test(k) || functions.includes(k) || 
+        variables.hasOwnProperty(k) || k === ';') {
+            return k;
         }
     });
+    
 
     expression = expression.filter(exp => exp !== undefined);
     
+    console.log(expression)
+
     let openParenthesesCount = 0
     let error = undefined
 
