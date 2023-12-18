@@ -22,31 +22,33 @@ const precedence = (operator, orderMode) => {
 };
 
 const knownValues = {
-    'sin': { [0]: 0, [Math.PI / 6]: 1 / 2, [Math.PI / 4]: Math.sqrt(2) / 2, [Math.PI / 3]: Math.sqrt(3) / 2, [Math.PI / 2]: 1},
-    'cos': { [0]: 1, [Math.PI / 6]: Math.sqrt(3) / 2, [Math.PI / 4]: Math.sqrt(2) / 2, [Math.PI / 3]: 1/ 2, [Math.PI / 2]: 0},
-    'tan': { [0]: 0, [Math.PI / 6]: Math.sqrt(3) / 3, [Math.PI / 4]: 1, [Math.PI / 3]: Math.sqrt(3)},
+    'sin': { [0]: 0, [Math.PI.toFixed(15) / 6]: 1 / 2, [Math.PI.toFixed(15) / 4]: Math.sqrt(2) / 2, [Math.PI.toFixed(15) / 3]: Math.sqrt(3) / 2, [Math.PI.toFixed(15) / 2]: 1},
+    'cos': { [0]: 1, [Math.PI.toFixed(15) / 6]: Math.sqrt(3) / 2, [Math.PI.toFixed(15) / 4]: Math.sqrt(2) / 2, [Math.PI.toFixed(15) / 3]: 1/ 2, [Math.PI.toFixed(15) / 2]: 0},
+    'tan': { [0]: 0, [Math.PI.toFixed(15) / 6]: Math.sqrt(3) / 3, [Math.PI.toFixed(15) / 4]: 1, [Math.PI.toFixed(15) / 3]: Math.sqrt(3)},
 };
 
-const applyOperator = (operator, a, b) => {
+const applyOperator = (operator, a, b, angle) => {
+    const degToRad = (angle, value) => (angle[0] === 'DEG' ? value * Math.PI / 180 : value);
+
     const operators = {
-        'sin': (a, b) => knownValues['sin'][b] !== undefined ? knownValues['sin'][b] : Math.sin(b),
-        'cos': (a, b) => knownValues['cos'][b] !== undefined ? knownValues['cos'][b] : Math.cos(b),
-        'tan': (a, b) => knownValues['tan'][b] !== undefined ? knownValues['tan'][b] : Math.tan(b),
-        'cot': (a, b) => knownValues['tan'][b] !== undefined ? 1 / knownValues['tan'][b] : 1 / Math.tan(b),
-        'sec': (a, b) => knownValues['cos'][b] !== undefined ? 1 / knownValues['cos'][b] : 1 / Math.cos(b),
-        'csc': (a, b) => knownValues['sin'][b] !== undefined ? 1 / knownValues['sin'][b] : 1 / Math.sin(b),
-        'asin': (a, b) => Math.asin(b),
-        'acos': (a, b) => Math.acos(b),
-        'atan': (a, b) => Math.atan(b),
-        'acot': (a, b) => Math.atan(1 / b),
-        'asec': (a, b) => Math.acos(1 / b),
-        'acsc': (a, b) => Math.asin(1 / b),
-        'sinh': (a, b) => Math.sinh(b),
-        'cosh': (a, b) => Math.cosh(b),
-        'tanh': (a, b) => Math.tanh(b),
-        'coth': (a, b) => Math.coth(1 / b),
-        'sech': (a, b) => Math.sech(1 / b),
-        'csch': (a, b) => Math.csch(1 / b),
+        'sin': (a, b) => knownValues['sin'][degToRad(angle, b).toFixed(15)] !== undefined ? knownValues['sin'][degToRad(angle, b).toFixed(15)] : Math.sin(degToRad(angle, b)),
+        'cos': (a, b) => knownValues['cos'][degToRad(angle, b).toFixed(15)] !== undefined ? knownValues['cos'][degToRad(angle, b).toFixed(15)] : Math.cos(degToRad(angle, b)),
+        'tan': (a, b) => knownValues['tan'][degToRad(angle, b).toFixed(15)] !== undefined ? knownValues['tan'][degToRad(angle, b).toFixed(15)] : Math.tan(degToRad(angle, b)),
+        'cot': (a, b) => knownValues['tan'][degToRad(angle, b).toFixed(15)] !== undefined ? 1 / knownValues['tan'][degToRad(angle, b).toFixed(15)] : 1 / Math.tan(degToRad(angle, b)),
+        'sec': (a, b) => knownValues['cos'][degToRad(angle, b).toFixed(15)] !== undefined ? 1 / knownValues['cos'][degToRad(angle, b).toFixed(15)] : 1 / Math.cos(degToRad(angle, b)),
+        'csc': (a, b) => knownValues['sin'][degToRad(angle, b).toFixed(15)] !== undefined ? 1 / knownValues['sin'][degToRad(angle, b).toFixed(15)] : 1 / Math.sin(degToRad(angle, b)),
+        'asin': (a, b) => knownValues['sin'][degToRad(angle, b).toFixed(15)] !== undefined ? Math.asin(knownValues['sin'][degToRad(angle, b).toFixed(15)]) : Math.asin(degToRad(angle, b)),
+        'acos': (a, b) => knownValues['cos'][degToRad(angle, b).toFixed(15)] !== undefined ? Math.acos(knownValues['cos'][degToRad(angle, b).toFixed(15)]) : Math.acos(degToRad(angle, b)),
+        'atan': (a, b) => knownValues['tan'][degToRad(angle, b).toFixed(15)] !== undefined ? Math.atan(knownValues['tan'][degToRad(angle, b).toFixed(15)]) : Math.atan(degToRad(angle, b)),
+        'acot': (a, b) => 1 / (knownValues['tan'][degToRad(angle, b).toFixed(15)] !== undefined ? knownValues['tan'][degToRad(angle, b).toFixed(15)] : Math.tan(degToRad(angle, b))),
+        'asec': (a, b) => 1 / (knownValues['cos'][degToRad(angle, b).toFixed(15)] !== undefined ? knownValues['cos'][degToRad(angle, b).toFixed(15)] : Math.cos(degToRad(angle, b))),
+        'acsc': (a, b) => 1 / (knownValues['sin'][degToRad(angle, b).toFixed(15)] !== undefined ? knownValues['sin'][degToRad(angle, b).toFixed(15)] : Math.sin(degToRad(angle, b))),
+        'sinh': (a, b) => Math.sinh(degToRad(angle, b)),
+        'cosh': (a, b) => Math.cosh(degToRad(angle, b)),
+        'tanh': (a, b) => Math.tanh(degToRad(angle, b)),
+        'coth': (a, b) => 1 / Math.tanh(degToRad(angle, b)),
+        'sech': (a, b) => 1 / Math.cosh(degToRad(angle, b)),
+        'csch': (a, b) => 1 / Math.sinh(degToRad(angle, b)),
         'log': (a, b) => Math.log(b),
         'ln': (a, b) => Math.log(b),
         '\+': (a, b) => a + b,
@@ -117,7 +119,7 @@ const solveExpression = (expression, settings) => {
         } else {
             let b = resultStack.pop();
             let a = resultStack.pop();
-            resultStack.push(applyOperator(token, a, b));
+            resultStack.push(applyOperator(token, a, b, settings['angle']));
         }
     }
 
@@ -200,7 +202,7 @@ module.exports = function (uuid, expression) {
                                 sign = (precedingOperator === '-') ? -1 : 1;
                             }
                 
-                                let result = solveExpression(subExpression);
+                                let result = solveExpression(subExpression, settings);
                                 if (subExp[index - 2] === '-' && subExp[index] === '+') {
                                     result = sign * result;
                                 }
@@ -229,9 +231,11 @@ module.exports = function (uuid, expression) {
                         }
             
                             let result = solveExpression(subExpression, settings);
+
                             if (subExp[index - 2] === '-' && subExp[index] === '+') {
                                 result = sign * result;
                             }
+
                             subExp.splice(index - 1, 3, result);
             
                         sign = 1;
@@ -280,20 +284,6 @@ module.exports = function (uuid, expression) {
 
         let subExpression = modifiedExpression.slice(openIndex + 1, closeIndex);
 
-        /*for (let order in operatorOrders[orderMode]) {
-            const operators = operatorOrders[orderMode][order];
-
-            while (operators.some(op => subExpression.includes(op))) {
-                const index = subExpression.findIndex(token => operators.includes(token));
-
-                let result = solveExpression(subExpression.slice(index - 1, index + 2));
-
-                subExpression.splice(index - 1, 3, result);
-
-                console.log(`${subExpression.join(' ')} = ${result}`);
-            }
-        }*/
-
         for (let order in operatorOrders[orderMode]) {
             const operators = operatorOrders[orderMode][order];
     
@@ -306,19 +296,23 @@ module.exports = function (uuid, expression) {
                     sign = (precedingOperator === '-') ? -1 : 1;
                 }
     
-                    let result = solveExpression(subExpression, settings);
-                    if (expression[index - 2] === '-' && expression[index] === '+') {
-                        result = sign * result;
-                    }
-                    expression.splice(index - 1, 3, result);
-    
-                //console.log(`${expression.join(' ')} = ${result}`);
+                result = solveExpression(subExpression, settings);
+        
+                if (expression[index - 2] === '-' && expression[index] === '+') {
+                    result = sign * result;
+                }
+
+                console.log(expression.splice(index - 1, 3, result))
+
+                expression.splice(index - 1, 3, result);
+
+                console.log(`${expression.join(' ')} = ${result}`);
     
                 sign = 1;
             }
         }
 
-        modifiedExpression.splice(openIndex, closeIndex - openIndex + 1, ...subExpression);
+        modifiedExpression.splice(openIndex, closeIndex - openIndex + 1, ...[result]);
     }
 
     expression = modifiedExpression;
