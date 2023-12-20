@@ -50,4 +50,5 @@ $expression$
     ```
     $sin(180)$
     ```
+    
   *Note that, by default, you must use radians for trigonometric functions. This, however, can be changed in settings.* 
