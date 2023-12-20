@@ -10,7 +10,8 @@ const operatorOrders = {
 };
 
 const parser = require('./parser.js')
-const database = require('./database.js')
+const database = require('./database.js');
+const { managerToFetchingStrategyOptions } = require('discord.js');
 
 const precedence = (operator, orderMode) => {
     for (let order in operatorOrders[orderMode]) {
@@ -21,34 +22,34 @@ const precedence = (operator, orderMode) => {
     return 0;
 };
 
-const knownValues = {
-    'sin': { [0]: 0, [Math.PI.toFixed(15) / 6]: 1 / 2, [Math.PI.toFixed(15) / 4]: Math.sqrt(2) / 2, [Math.PI.toFixed(15) / 3]: Math.sqrt(3) / 2, [Math.PI.toFixed(15) / 2]: 1},
-    'cos': { [0]: 1, [Math.PI.toFixed(15) / 6]: Math.sqrt(3) / 2, [Math.PI.toFixed(15) / 4]: Math.sqrt(2) / 2, [Math.PI.toFixed(15) / 3]: 1/ 2, [Math.PI.toFixed(15) / 2]: 0},
-    'tan': { [0]: 0, [Math.PI.toFixed(15) / 6]: Math.sqrt(3) / 3, [Math.PI.toFixed(15) / 4]: 1, [Math.PI.toFixed(15) / 3]: Math.sqrt(3)},
-};
+/*const knownValues = {
+    'sin': { [0]: 0, [Math.PI / 6]: 1 / 2, [Math.PI / 4]: Math.sqrt(2) / 2, [Math.PI / 3]: Math.sqrt(3) / 2, [Math.PI / 2]: 1},
+    'cos': { [0]: 1, [Math.PI / 6]: Math.sqrt(3) / 2, [Math.PI / 4]: Math.sqrt(2) / 2, [Math.PI / 3]: 1/ 2, [Math.PI / 2]: 0},
+    'tan': { [0]: 0, [Math.PI / 6]: Math.sqrt(3) / 3, [Math.PI / 4]: 1, [Math.PI / 3]: Math.sqrt(3)},
+};*/
 
 const applyOperator = (operator, a, b, angle) => {
-    const degToRad = (angle, value) => (angle[0] === 'DEG' ? value * Math.PI / 180 : value);
+    const degToRad = (value) => (angle[0] === 'DEG' ? value * Math.PI / 180 : value);
 
     const operators = {
-        'sin': (a, b) => knownValues['sin'][degToRad(angle, b).toFixed(15)] !== undefined ? knownValues['sin'][degToRad(angle, b).toFixed(15)] : Math.sin(degToRad(angle, b)),
-        'cos': (a, b) => knownValues['cos'][degToRad(angle, b).toFixed(15)] !== undefined ? knownValues['cos'][degToRad(angle, b).toFixed(15)] : Math.cos(degToRad(angle, b)),
-        'tan': (a, b) => knownValues['tan'][degToRad(angle, b).toFixed(15)] !== undefined ? knownValues['tan'][degToRad(angle, b).toFixed(15)] : Math.tan(degToRad(angle, b)),
-        'cot': (a, b) => knownValues['tan'][degToRad(angle, b).toFixed(15)] !== undefined ? 1 / knownValues['tan'][degToRad(angle, b).toFixed(15)] : 1 / Math.tan(degToRad(angle, b)),
-        'sec': (a, b) => knownValues['cos'][degToRad(angle, b).toFixed(15)] !== undefined ? 1 / knownValues['cos'][degToRad(angle, b).toFixed(15)] : 1 / Math.cos(degToRad(angle, b)),
-        'csc': (a, b) => knownValues['sin'][degToRad(angle, b).toFixed(15)] !== undefined ? 1 / knownValues['sin'][degToRad(angle, b).toFixed(15)] : 1 / Math.sin(degToRad(angle, b)),
-        'asin': (a, b) => knownValues['sin'][degToRad(angle, b).toFixed(15)] !== undefined ? Math.asin(knownValues['sin'][degToRad(angle, b).toFixed(15)]) : Math.asin(degToRad(angle, b)),
-        'acos': (a, b) => knownValues['cos'][degToRad(angle, b).toFixed(15)] !== undefined ? Math.acos(knownValues['cos'][degToRad(angle, b).toFixed(15)]) : Math.acos(degToRad(angle, b)),
-        'atan': (a, b) => knownValues['tan'][degToRad(angle, b).toFixed(15)] !== undefined ? Math.atan(knownValues['tan'][degToRad(angle, b).toFixed(15)]) : Math.atan(degToRad(angle, b)),
-        'acot': (a, b) => 1 / (knownValues['tan'][degToRad(angle, b).toFixed(15)] !== undefined ? knownValues['tan'][degToRad(angle, b).toFixed(15)] : Math.tan(degToRad(angle, b))),
-        'asec': (a, b) => 1 / (knownValues['cos'][degToRad(angle, b).toFixed(15)] !== undefined ? knownValues['cos'][degToRad(angle, b).toFixed(15)] : Math.cos(degToRad(angle, b))),
-        'acsc': (a, b) => 1 / (knownValues['sin'][degToRad(angle, b).toFixed(15)] !== undefined ? knownValues['sin'][degToRad(angle, b).toFixed(15)] : Math.sin(degToRad(angle, b))),
-        'sinh': (a, b) => Math.sinh(degToRad(angle, b)),
-        'cosh': (a, b) => Math.cosh(degToRad(angle, b)),
-        'tanh': (a, b) => Math.tanh(degToRad(angle, b)),
-        'coth': (a, b) => 1 / Math.tanh(degToRad(angle, b)),
-        'sech': (a, b) => 1 / Math.cosh(degToRad(angle, b)),
-        'csch': (a, b) => 1 / Math.sinh(degToRad(angle, b)),
+        sin: (a, b) => Math.sin(degToRad(b)).toFixed(13),
+        cos: (a, b) => Math.cos(degToRad(b)).toFixed(13),
+        tan: (a, b) => Math.tan(degToRad(b)).toFixed(13),
+        cot: (a, b) => (1 / Math.tan(degToRad(b))).toFixed(13),
+        sec: (a, b) => (1 / Math.cos(degToRad(b))).toFixed(13),
+        csc: (a, b) => (1 / Math.sin(degToRad(b))).toFixed(13),
+        asin: (a, b) => Math.asin(degToRad(b)).toFixed(13),
+        acos: (a, b) => Math.acos(degToRad(b)).toFixed(13),
+        atan: (a, b) => Math.atan(degToRad(b)).toFixed(13),
+        acot: (a, b) => (1 / Math.tan(degToRad(b))).toFixed(13),
+        asec: (a, b) => (1 / Math.cos(degToRad(b))).toFixed(13),
+        acsc: (a, b) => (1 / Math.sin(degToRad(b))).toFixed(13),
+        sinh: (a, b) => Math.sinh(degToRad(b)).toFixed(13),
+        cosh: (a, b) => Math.cosh(degToRad(b)).toFixed(13),
+        tanh: (a, b) => Math.tanh(degToRad(b)).toFixed(13),
+        coth: (a, b) => (1 / Math.tanh(degToRad(b))).toFixed(13),
+        sech: (a, b) => (1 / Math.cosh(degToRad(b))).toFixed(13),
+        csch: (a, b) => (1 / Math.sinh(degToRad(b))).toFixed(13),
         'log': (a, b) => Math.log(b),
         'ln': (a, b) => Math.log(b),
         '\+': (a, b) => a + b,
@@ -68,13 +69,13 @@ const applyOperator = (operator, a, b, angle) => {
     };
 
     a = parseFloat(a);
-    b = parseFloat(b);
+    b = parseFloat(b);  
 
     if (operators.hasOwnProperty(operator)) {
         if (operator == "/" && b == 0) return 'undefined'
-        if (operator == 'tan' && b == (Math.PI / 2)) return 'undefined'
+        if (operator == 'tan' && b == (PI / 2)) return 'undefined'
 
-        return operators[operator](a, b);
+        return Number(operators[operator](a, b));
     } else {
         return a || b;
     }
